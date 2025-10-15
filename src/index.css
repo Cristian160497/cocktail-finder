@@ -1,0 +1,131 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  background-color: #3b2f2f; /* marrone scuro */
+  color: #f8d17a; /* giallo oro */
+}
+
+/* Container principale */
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Titolo */
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #f8d17a;
+  text-align: center;
+  margin-bottom: 3rem; /* più spazio */
+  letter-spacing: 1px;
+}
+
+/* Testo di caricamento */
+.loading-text {
+  font-size: 1.2rem;
+  color: #f8d17a;
+}
+
+/* Griglia cocktail */
+.cocktail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Card cocktail */
+.cocktail-card {
+  background: #4a3a3a;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.cocktail-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+}
+
+/* Immagine */
+.cocktail-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Nome */
+.cocktail-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1rem 0;
+  color: #f8d17a;
+}
+
+/* === MODAL === */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background-color: #3b2f2f; /* marrone scuro */
+  color: #ffcc00; /* giallo */
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 450px; /* 🔹 ridotta rispetto a prima */
+  max-height: 80vh; /* 🔹 più piccola e scrollabile */
+  overflow-y: auto;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease;
+  position: relative;
+}
+
+.modal-content img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #ffcc00;
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.modal-close:hover {
+  transform: scale(1.2);
+  color: #ffe066;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
