@@ -1,15 +1,31 @@
 import React from "react";
 
-function CocktailCard({ cocktail, onSelect }) {
+function CocktailCard({ cocktail, onClick }) {
   return (
-    <li className="cocktail-card" onClick={() => onSelect(cocktail)}>
-      <img
-        src={cocktail.strDrinkThumb}
-        alt={cocktail.strDrink}
-        className="cocktail-image"
-      />
-      <h3>{cocktail.strDrink}</h3>
-    </li>
+    <div
+      className="cocktail-card"
+      onClick={onClick}
+      role="button"
+      aria-label={`Apri dettagli ${cocktail?.strDrink}`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onClick?.();
+      }}
+    >
+      {/* MODIFICA: wrapper interno */}
+      <div className="cocktail-card-inner">
+        <img
+          src={cocktail?.strDrinkThumb}
+          alt={cocktail?.strDrink}
+          loading="lazy"
+          onError={(e) => {
+            // fallback se immagine mancante
+            e.currentTarget.src = "/placeholder-drink.png";
+          }}
+        />
+      </div>
+      <div className="cocktail-title">{cocktail?.strDrink}</div>
+    </div>
   );
 }
 
