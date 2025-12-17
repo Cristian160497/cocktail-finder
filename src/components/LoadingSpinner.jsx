@@ -19,7 +19,7 @@ function LoadingSpinner() {
         animation: "spin 1s linear infinite"
       }} />
       <p style={{ color: "#666", fontSize: "16px" }}>Caricamento cocktail...</p>
-      
+
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }

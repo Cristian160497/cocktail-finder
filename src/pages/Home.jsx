@@ -23,7 +23,7 @@ function Home() {
   const [selected, setSelected] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
-  // Refs per le animazioni
+   // Refs per le animazioni
   const containerRef = useRef(null);
   const cardsRef = useRef([]);
   const titleRef = useRef(null);
@@ -66,7 +66,7 @@ function Home() {
     if (!loading && cocktails.length > 0) {
       // Filtra solo i ref validi
       const validCards = cardsRef.current.filter(card => card !== null && card !== undefined);
-      
+
       if (validCards.length > 0) {
         const ctx = gsap.context(() => {
           gsap.from(validCards, {
@@ -81,7 +81,7 @@ function Home() {
               ease: "power2.out"
             },
             ease: "back.out(1.4)",
-            clearProps: "all"
+            clearProps: "opacity, transform"
           });
         }, containerRef);
 
@@ -135,7 +135,7 @@ function Home() {
       setTimeout(() => {
         const modal = document.querySelector('.modal-backdrop');
         const modalContent = document.querySelector('.modal-content');
-        
+
         if (modal && modalContent) {
           gsap.fromTo(modal, 
             { opacity: 0 },
@@ -172,7 +172,7 @@ function Home() {
   const closeModal = () => {
     const modal = document.querySelector('.modal-backdrop');
     const modalContent = document.querySelector('.modal-content');
-    
+
     if (modal && modalContent) {
       gsap.to(modalContent, {
         scale: 0.8,
@@ -193,7 +193,7 @@ function Home() {
   };
 
   return (
-    <div className="home-container" ref={containerRef}>
+     <div className="home-container" ref={containerRef}>
       <div ref={searchRef}>
         <SearchBar />
       </div>
@@ -239,9 +239,9 @@ function Home() {
         </div>
       )}
 
-      {selected && (
+       {selected && (
         <CocktailModal
-          cocktail={selected}
+         cocktail={selected}
           onClose={closeModal}
         />
       )}

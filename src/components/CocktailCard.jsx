@@ -12,15 +12,18 @@ function CocktailCard({ cocktail, onClick }) {
         if (e.key === "Enter" || e.key === " ") onClick?.();
       }}
     >
-      <img
-        src={cocktail?.strDrinkThumb}
-        alt={cocktail?.strDrink}
-        loading="lazy"
-        onError={(e) => {
-          // fallback se immagine mancante
-          e.currentTarget.src = "/placeholder-drink.png";
-        }}
-      />
+      {/* MODIFICA: wrapper interno */}
+      <div className="cocktail-card-inner">
+        <img
+          src={cocktail?.strDrinkThumb}
+          alt={cocktail?.strDrink}
+          loading="lazy"
+          onError={(e) => {
+            // fallback se immagine mancante
+            e.currentTarget.src = "/placeholder-drink.png";
+          }}
+        />
+      </div>
       <div className="cocktail-title">{cocktail?.strDrink}</div>
     </div>
   );

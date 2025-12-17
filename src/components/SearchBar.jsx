@@ -22,106 +22,115 @@ function SearchBar() {
   } = useCocktailStore();
 
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
-  const dropdownRefs = useRef({});
 
+  const containerRef = useRef(null);
+  const dropdownPortalRef = useRef(null);
+
+  const pillRefs = {
+    category: useRef(null),
+    ingredient: useRef(null),
+    alcoholic: useRef(null),
+  };
+
+  /* ===============================
+     LOAD OPTIONS
+  =============================== */
   useEffect(() => {
     loadFilterOptions();
   }, [loadFilterOptions]);
 
+  /* ===============================
+     SEARCH DEBOUNCE
+  =============================== */
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchTerm !== undefined) searchCocktails(searchTerm);
+      searchCocktails(searchTerm);
     }, 500);
+
     return () => clearTimeout(timer);
   }, [searchTerm, searchCocktails]);
 
-  // Chiudi dropdown quando clicchi fuori
+  /* ===============================
+     CLICK OUTSIDE (PORTAL SAFE)
+  =============================== */
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!Object.values(dropdownRefs.current).some(ref => ref?.contains(event.target))) {
+    const handleClickOutside = (e) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target) &&
+        dropdownPortalRef.current &&
+        !dropdownPortalRef.current.contains(e.target)
+      ) {
         setActiveDropdown(null);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleDropdown = (filterName) => {
-    const ref = dropdownRefs.current[filterName];
-    if (!ref) return;
-
-    if (activeDropdown === filterName) {
-      setActiveDropdown(null);
-    } else {
-      const rect = ref.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY + 8, // distanza sotto la pill
-        left: rect.left + window.scrollX,
-        width: rect.width
-      });
-      setActiveDropdown(filterName);
-    }
+  /* ===============================
+     DROPDOWN HELPERS
+  =============================== */
+  const toggleDropdown = (type) => {
+    setActiveDropdown((prev) => (prev === type ? null : type));
   };
 
-  const handleFilterSelect = (filterType, value) => {
-    if (filterType === "category") setCategory(value);
-    if (filterType === "ingredient") setIngredient(value);
-    if (filterType === "alcoholic") setAlcoholic(value);
+  const handleFilterSelect = (type, value) => {
+    if (type === "category") setCategory(value);
+    if (type === "ingredient") setIngredient(value);
+    if (type === "alcoholic") setAlcoholic(value);
+
     setActiveDropdown(null);
+
+    applyFilters({
+      category: type === "category" ? value : selectedCategory,
+      ingredient: type === "ingredient" ? value : selectedIngredient,
+      alcoholic: type === "alcoholic" ? value : selectedAlcoholic,
+    });
+  };
+
+  const clearFilter = (type) => {
+    if (type === "category") setCategory("");
+    if (type === "ingredient") setIngredient("");
+    if (type === "alcoholic") setAlcoholic("");
     applyFilters();
   };
 
-  const clearFilter = (filterType) => {
-    if (filterType === "category") setCategory("");
-    if (filterType === "ingredient") setIngredient("");
-    if (filterType === "alcoholic") setAlcoholic("");
-    applyFilters();
-  };
-
-  const activeFiltersCount = [selectedCategory, selectedIngredient, selectedAlcoholic].filter(Boolean).length;
-
-  // Funzione helper per renderizzare il dropdown in portal
-  const renderDropdown = (filterName, options, selectedValue, filterType) => {
-    if (activeDropdown !== filterName) return null;
+  /* ===============================
+     PORTAL RENDER
+  =============================== */
+  const renderDropdown = (type, content) => {
+    const rect = pillRefs[type].current?.getBoundingClientRect();
+    if (!rect) return null;
 
     return createPortal(
       <div
-        className={`filter-dropdown ${filterType === "ingredient" ? "scrollable" : ""}`}
+        ref={dropdownPortalRef}
+        className="filter-dropdown"
         style={{
-          top: dropdownPosition.top,
-          left: dropdownPosition.left,
-          width: dropdownPosition.width
+          position: "fixed",
+          top: rect.bottom + 8,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 9999,
         }}
       >
-        <div className="dropdown-option" onClick={() => handleFilterSelect(filterType, "")}>
-          {filterType === "category" ? "Tutte le categorie" : filterType === "ingredient" ? "Tutti gli ingredienti" : "Tutti i tipi"}
-        </div>
-        {options.map((opt) => {
-          const value = opt.strCategory || opt.strIngredient1 || opt.strAlcoholic;
-          return (
-            <div
-              key={value}
-              className={`dropdown-option ${selectedValue === value ? "selected" : ""}`}
-              onClick={() => handleFilterSelect(filterType, value)}
-            >
-              {value}
-              {selectedValue === value && <span className="check-mark">✓</span>}
-            </div>
-          );
-        })}
+        {content}
       </div>,
       document.body
     );
   };
 
+  const activeFiltersCount = [selectedCategory, selectedIngredient, selectedAlcoholic].filter(Boolean).length;
+
+  /* ===============================
+     RENDER
+  =============================== */
   return (
-    <div className="netflix-search-container">
+    <div className="netflix-search-container" ref={containerRef}>
+      {/* SEARCH INPUT */}
       <div className="search-input-wrapper">
-        <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="8" strokeWidth="2"/>
-          <path d="m21 21-4.35-4.35" strokeWidth="2"/>
-        </svg>
         <input
           type="text"
           placeholder="Cerca cocktail per nome..."
@@ -131,52 +140,129 @@ function SearchBar() {
         />
       </div>
 
+      {/* FILTERS */}
       <div className="netflix-filters">
-        {/* Categoria */}
-        <div className="filter-pill-container" ref={el => dropdownRefs.current.category = el}>
-          <button
-            className={`filter-pill ${selectedCategory ? "active" : ""}`}
-            onClick={() => toggleDropdown("category")}
-          >
-            🍹 Categoria
-            {selectedCategory && <span className="filter-badge" onClick={(e) => { e.stopPropagation(); clearFilter("category"); }}>×</span>}
-          </button>
-        </div>
+        {/* CATEGORIA */}
+        <button
+          ref={pillRefs.category}
+          className={`filter-pill ${selectedCategory ? "active" : ""}`}
+          onClick={() => toggleDropdown("category")}
+        >
+          🍹 Categoria
+          {selectedCategory && (
+            <span
+              className="filter-badge"
+              onClick={(e) => {
+                e.stopPropagation();
+                clearFilter("category");
+              }}
+            >
+              X
+            </span>
+          )}
+        </button>
 
-        {/* Ingrediente */}
-        <div className="filter-pill-container" ref={el => dropdownRefs.current.ingredient = el}>
-          <button
-            className={`filter-pill ${selectedIngredient ? "active" : ""}`}
-            onClick={() => toggleDropdown("ingredient")}
-          >
-            🥃 Ingrediente
-            {selectedIngredient && <span className="filter-badge" onClick={(e) => { e.stopPropagation(); clearFilter("ingredient"); }}>×</span>}
-          </button>
-        </div>
+        {activeDropdown === "category" &&
+          renderDropdown("category", (
+            <>
+              <div className="dropdown-option" onClick={() => handleFilterSelect("category", "")}>
+                Tutte le categorie
+              </div>
+              {categories.map((cat) => (
+                <div
+                  key={cat.strCategory}
+                  className="dropdown-option"
+                  onClick={() => handleFilterSelect("category", cat.strCategory)}
+                >
+                  {cat.strCategory}
+                </div>
+              ))}
+            </>
+          ))}
 
-        {/* Tipo */}
-        <div className="filter-pill-container" ref={el => dropdownRefs.current.alcoholic = el}>
-          <button
-            className={`filter-pill ${selectedAlcoholic ? "active" : ""}`}
-            onClick={() => toggleDropdown("alcoholic")}
-          >
-            🍸 Tipo
-            {selectedAlcoholic && <span className="filter-badge" onClick={(e) => { e.stopPropagation(); clearFilter("alcoholic"); }}>×</span>}
-          </button>
-        </div>
+        {/* INGREDIENTE */}
+        <button
+          ref={pillRefs.ingredient}
+          className={`filter-pill ${selectedIngredient ? "active" : ""}`}
+          onClick={() => toggleDropdown("ingredient")}
+        >
+          🥃 Ingrediente
+            {selectedIngredient && (
+            <span
+              className="filter-badge"
+              onClick={(e) => {
+                e.stopPropagation();
+                clearFilter("ingredient");
+              }}
+            >
+              X
+            </span>
+          )}
+        </button>
 
+        {activeDropdown === "ingredient" &&
+          renderDropdown("ingredient", (
+            <>
+              <div className="dropdown-option" onClick={() => handleFilterSelect("ingredient", "")}>
+                Tutti gli ingredienti
+              </div>
+              {ingredients.slice(0, 50).map((ing) => (
+                <div
+                  key={ing.strIngredient1}
+                  className="dropdown-option"
+                  onClick={() => handleFilterSelect("ingredient", ing.strIngredient1)}
+                >
+                  {ing.strIngredient1}
+                </div>
+              ))}
+            </>
+          ))}
+
+        {/* TIPO */}
+        <button
+          ref={pillRefs.alcoholic}
+          className={`filter-pill ${selectedAlcoholic ? "active" : ""}`}
+          onClick={() => toggleDropdown("alcoholic")}
+        >
+          🍸 Tipo
+            {selectedAlcoholic && (
+            <span
+              className="filter-badge"
+              onClick={(e) => {
+                e.stopPropagation();
+                clearFilter("alcoholic");
+              }}
+            >
+              X
+            </span>
+          )}
+        </button>
+
+        {activeDropdown === "alcoholic" &&
+          renderDropdown("alcoholic", (
+            <>
+              <div className="dropdown-option" onClick={() => handleFilterSelect("alcoholic", "")}>
+                Tutti i tipi
+              </div>
+              {alcoholicTypes.map((type) => (
+                <div
+                  key={type.strAlcoholic}
+                  className="dropdown-option"
+                  onClick={() => handleFilterSelect("alcoholic", type.strAlcoholic)}
+                >
+                  {type.strAlcoholic}
+                </div>
+              ))}
+            </>
+          ))}
+
+        {/* CLEAR ALL */}
         {activeFiltersCount > 0 && (
           <button className="clear-all-btn" onClick={resetFilters}>
-            <span className="filters-count">{activeFiltersCount}</span>
-            Cancella tutto
+            Cancella tutto ({activeFiltersCount})
           </button>
         )}
       </div>
-
-      {/* Dropdown Portal */}
-      {renderDropdown("category", categories, selectedCategory, "category")}
-      {renderDropdown("ingredient", ingredients.slice(0,50), selectedIngredient, "ingredient")}
-      {renderDropdown("alcoholic", alcoholicTypes, selectedAlcoholic, "alcoholic")}
     </div>
   );
 }

@@ -5,11 +5,11 @@ async function fetchWithRetry(url, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -17,7 +17,7 @@ async function fetchWithRetry(url, retries = 3) {
       if (i === retries - 1) {
         throw new Error(`Errore nel caricamento dei dati: ${error.message}`);
       }
-      
+
       // Attendi prima di riprovare (exponential backoff)
       await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
     }
@@ -93,7 +93,7 @@ export const cocktailService = {
     for (let i = 1; i <= 15; i++) {
       const ingredient = cocktail[`strIngredient${i}`];
       const measure = cocktail[`strMeasure${i}`];
-      
+
       if (ingredient && ingredient.trim() !== "") {
         ingredients.push({
           name: ingredient,
